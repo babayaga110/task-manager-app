@@ -31,8 +31,6 @@ const move = (source, destination, droppableSource, droppableDestination) => {
 
   return result;
 };
-const grid = 8;
-
 const getItemStyle = (isDragging, draggableStyle) => ({
   userSelect: "none",
   p: 0,
@@ -83,26 +81,11 @@ function TaskPanel({ state, setState }) {
       const newState = [...state];
       newState[sInd] = items;
       setState(newState);
-      const obj = {
-        listId: state[sInd][source.index].listId,
-        id: state[sInd][source.index].id,
-        order: destination.index,
-        title: state[sInd][source.index].title,
-        description: state[sInd][source.index].description
-      };
-      console.log(obj);
     } else {
       const result = move(state[sInd], state[dInd], source, destination);
 
       const task = state[sInd][source.index];  // Extract task only once
-      const obj = {
-        listId: task.listId,
-        newList: state[dInd][destination.index]?.listId,
-        id: task.id,
-        order: destination.index,
-        title: task.title,
-        description: task.description,
-      };
+  
   
       const newState = [...state];
       newState[sInd] = result[sInd];
@@ -180,9 +163,9 @@ function TaskPanel({ state, setState }) {
                       textTransform: "uppercase",
                     }}
                   >
-                    List {ind + 1}
+                    {el?.title}
                   </Typography>
-                  {el.map((item, index) => (
+                  {el?.tasks.map((item, index) => (
                     <Draggable
                       key={item.id}
                       draggableId={item.id}

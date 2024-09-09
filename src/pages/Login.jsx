@@ -68,6 +68,7 @@ export default function LoginPage() {
       if (response) {
         localStorage.setItem("user", JSON.stringify(response.user));
         showAlert("Success", "Logged in with Google", "success", "info");
+        navigate("/dashboard"); // Redirect to dashboard or any other page
       } else {
         showAlert("Error", response.message, "danger", "error");
       }

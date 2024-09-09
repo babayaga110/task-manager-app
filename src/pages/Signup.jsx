@@ -62,6 +62,7 @@ export default function SignupPage() {
       if (response) {
         localStorage.setItem("user", JSON.stringify(response.user));
         showAlert("Success", "Logged in with Google", "success", "info");
+        navigate("/dashboard");
       } else {
         showAlert("Error", response.message, "danger", "error");
       }

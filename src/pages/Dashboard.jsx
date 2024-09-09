@@ -10,6 +10,7 @@ import {
   Select,
   Divider,
   ButtonGroup,
+  Skeleton,
 } from "@mui/joy";
 import TaskPanel from "../components/TaskPanel/TaskPanel";
 import { v4 as uuidv4 } from "uuid";
@@ -21,44 +22,41 @@ export default function Dashboard() {
   const [loading, setLoading] = React.useState(false);
   const { showAlert } = useAlert();
 
-
   const handleAddTask = async () => {
     setLoading(true);
     try {
       const res = await taskService.create({ title: "", description: "" });
       if (res && res.message) {
         showAlert("Success", res.message, "success", "check");
-        // Optionally update the state or UI here
-      } 
+      }
     } catch (error) {
-      showAlert("Error", error.message || "An unexpected error occurred", "danger", "error");
+      showAlert(
+        "Error",
+        error.message || "An unexpected error occurred",
+        "danger",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
   };
-  
-  React.useEffect(() => {
-    let isMounted = true; 
 
+  React.useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
         const res = await taskService.getAll();
-        if (isMounted) {
-          setState(res);
-        }
+        setState(res);
       } catch (error) {
         showAlert("Error", error.message, "danger", "error");
+        setLoading(false);
+      } finally {
+        setLoading(false);
       }
     };
 
-    if(!loading) {
-      fetchData();
-    }
-
-    return () => {
-      isMounted = false; 
-    };
-  }, [loading]);
+    fetchData();
+  }, []);
 
   return (
     <Layout>
@@ -132,7 +130,16 @@ export default function Dashboard() {
         </FormControl>
       </Box>
       <Divider sx={{ my: 2 }} />
-      <TaskPanel state={state} setState={setState} />
+
+      {loading ? (
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+          {[...Array(4)].map((_, index) => (
+            <Skeleton variant="rectangular" height={300} width={300} />
+          ))}
+        </Box>
+      ) : (
+        <TaskPanel state={state} setState={setState} />
+      )}
     </Layout>
   );
 }
