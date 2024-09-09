@@ -10,27 +10,8 @@ import EditForm from "../Form/EditForm";
 import ViewForm from "../Form/ViewForm";
 import taskService from "../../services/taskService";
 
-const reorder = (list, startIndex, endIndex) => {
-  const result = Array.from(list);
-  const [removed] = result.splice(startIndex, 1);
-  result.splice(endIndex, 0, removed);
 
-  return result;
-};
 
-const move = (source, destination, droppableSource, droppableDestination) => {
-  const sourceClone = Array.from(source);
-  const destClone = Array.from(destination);
-  const [removed] = sourceClone.splice(droppableSource.index, 1);
-
-  destClone.splice(droppableDestination.index, 0, removed);
-
-  const result = {};
-  result[droppableSource.droppableId] = sourceClone;
-  result[droppableDestination.droppableId] = destClone;
-
-  return result;
-};
 const getItemStyle = (isDragging, draggableStyle) => ({
   userSelect: "none",
   p: 0,
@@ -66,6 +47,22 @@ function TaskPanel({ state, setState }) {
     data: {},
   });
 
+  const handleReorder = async (data) => {
+    try {
+      const res = await taskService.reorder(data);
+      if (res && res.message) {
+        showAlert("Success", res.message, "success", "info");
+      }
+    } catch (error) {
+      showAlert(
+        "Error",
+        error.message || "An unexpected error occurred",
+        "danger",
+        "error"
+      );
+    } 
+  };
+
   function onDragEnd(result) {
     const { source, destination } = result;
 
@@ -73,26 +70,25 @@ function TaskPanel({ state, setState }) {
     if (!destination) {
       return;
     }
+
     const sInd = +source.droppableId;
     const dInd = +destination.droppableId;
 
     if (sInd === dInd) {
-      const items = reorder(state[sInd], source.index, destination.index);
-      const newState = [...state];
-      newState[sInd] = items;
-      setState(newState);
+      const obj = {
+        listId: source.droppableId,
+        id: result.draggableId,
+        order: destination.index,
+      };
+      handleReorder(obj);
     } else {
-      const result = move(state[sInd], state[dInd], source, destination);
-
-      const task = state[sInd][source.index];  // Extract task only once
-  
-  
-      const newState = [...state];
-      newState[sInd] = result[sInd];
-      newState[dInd] = result[dInd];
-
-      setState(newState.filter((group) => group.length));
-      console.log(obj);
+      const obj = {
+        listId: source.droppableId,
+        newList: destination.droppableId,
+        id: result.draggableId,
+        order: destination.index,
+      };
+      handleReorder(obj);
     }
   }
 
@@ -146,7 +142,7 @@ function TaskPanel({ state, setState }) {
       <Box sx={{ display: "flex", gap: 1 }}>
         <DragDropContext onDragEnd={onDragEnd}>
           {state.map((el, ind) => (
-            <Droppable key={ind} droppableId={`${ind}`}>
+            <Droppable key={ind} droppableId={`${el.id}`}>
               {(provided, snapshot) => (
                 <Box
                   ref={provided.innerRef}

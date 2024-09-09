@@ -19,7 +19,7 @@ export const App = initializeApp({
     messagingSenderId: `${import.meta.env.VITE_APP_MESSAGING_SENDER_ID}`,
     measurementId: `${import.meta.env.VITE_APP_MEASUREMENT_ID}`,
 });
-export const analytics = getAnalytics(App);
+// export const analytics = getAnalytics(App);
 export const auth = getAuth(App);
 export const db_firestore = getFirestore(App);
 export const storage = getStorage(App);

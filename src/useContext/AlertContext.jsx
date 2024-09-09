@@ -25,7 +25,7 @@ export const AlertProvider = ({ children }) => {
   }, [alert.visible]);
 
   return (
-    <AlertContext.Provider value={{ showAlert, hideAlert }}>
+    <AlertContext.Provider value={{ showAlert, hideAlert ,alert}}>
       {children}
       {alert.visible && <AlertComponent {...alert} hideAlert={hideAlert} />}
     </AlertContext.Provider>

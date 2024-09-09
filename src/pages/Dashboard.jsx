@@ -4,7 +4,7 @@ import {
   FormControl,
   FormLabel,
   Input,
-  MenuItem,
+  Option,
   Button,
   Box,
   Select,
@@ -13,17 +13,19 @@ import {
   Skeleton,
 } from "@mui/joy";
 import TaskPanel from "../components/TaskPanel/TaskPanel";
-import { v4 as uuidv4 } from "uuid";
 import taskService from "../services/taskService";
 import { useAlert } from "../useContext/AlertContext";
+import dayjs from "dayjs";
 
 export default function Dashboard() {
   const [state, setState] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
-  const { showAlert } = useAlert();
+  const [buttonLoading, setButtonLoading] = React.useState(false);
+  const { showAlert, alert } = useAlert();
+  const [sort, setSort] = React.useState("");
 
   const handleAddTask = async () => {
-    setLoading(true);
+    setButtonLoading(true);
     try {
       const res = await taskService.create({ title: "", description: "" });
       if (res && res.message) {
@@ -37,40 +39,63 @@ export default function Dashboard() {
         "error"
       );
     } finally {
+      setButtonLoading(false);
+    }
+  };
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await taskService.getAll();
+      setState(res);
+    } catch (error) {
+      showAlert("Error", error.message, "danger", "error");
+    } finally {
       setLoading(false);
     }
   };
 
   React.useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const res = await taskService.getAll();
-        setState(res);
-      } catch (error) {
-        showAlert("Error", error.message, "danger", "error");
-        setLoading(false);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (alert.color === "success") {
+      fetchData();
+    }
+  }, [alert.visible]);
 
+  React.useEffect(() => {
     fetchData();
   }, []);
 
+
+  const handleSearch = (e) => {
+    let value = e.target.value.toLowerCase();
+    if (!value) {
+      fetchData();
+      return;
+    }
+    let filtered = state.filter((item) => {
+      return item?.tasks?.some((task) => task.title.toLowerCase().includes(value));
+    });
+    setState(filtered);
+  };
+  const handleSort = (event, newValue) => {
+    setSort(newValue);
+    if (newValue === "recent") {
+      let sortedState = state.map(list => {
+        let sortedItems = [...list.tasks].sort((a, b) => {
+          return new Date(dayjs.unix(b?.createdAt?._seconds).format('MMMM D, YYYY h:mm A')) - new Date(dayjs.unix(a?.createdAt?._seconds).format('MMMM D, YYYY h:mm A'));
+        });
+        return { ...list, tasks: sortedItems };
+      });
+      console.log(sortedState);
+      setState(sortedState);
+    }
+  };
   return (
     <Layout>
       <ButtonGroup sx={{ mb: 2 }} variant="solid" color="primary">
-        <Button onClick={handleAddTask} loading={loading}>
+        <Button onClick={handleAddTask} loading={buttonLoading}>
           Add Task
         </Button>
-        {/* <Button
-          onClick={() => {
-            setState([...state, []]);
-          }}
-        >
-          Add another list
-        </Button> */}
       </ButtonGroup>
       <Box
         sx={{
@@ -101,6 +126,7 @@ export default function Dashboard() {
           </FormLabel>
           <Input
             placeholder="Search..."
+            onChange={handleSearch}
             sx={{
               width: "100%",
               maxWidth: 400,
@@ -122,10 +148,8 @@ export default function Dashboard() {
           >
             Sort:
           </FormLabel>
-          <Select>
-            <MenuItem value="recent">Recent</MenuItem>
-            <MenuItem value="asc">Ascending</MenuItem>
-            <MenuItem value="desc">Descending</MenuItem>
+          <Select onChange={handleSort} value={sort} placeholder="Sort by">
+            <Option value="recent">Recent</Option>
           </Select>
         </FormControl>
       </Box>

@@ -11,7 +11,7 @@ const taskService = {
         return requests.put(`/tasks/${data?.id}`, data);
     },
     reorder: async (data) => {
-        return requests.put("/tasks/reorder", data);
+        return requests.post("/tasks/reorder", data);
     },
     delete: async (listId, id) => {
         return requests.delete(`/tasks?listId=${listId}&id=${id}`);
