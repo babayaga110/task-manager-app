@@ -66,7 +66,7 @@ export default function SignupPage() {
         showAlert("Error", response.message, "danger", "error");
       }
     } catch (error) {
-      showAlert("Error", response.message, "danger", "error");
+      showAlert("Error", error.message, "danger", "error");
     } finally {
       setGoogleLoading(false);
     }
